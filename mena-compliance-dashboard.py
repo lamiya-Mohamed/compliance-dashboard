@@ -36,7 +36,7 @@ class ComplianceManager:
         return [(e.entity_name, e.sector, e.get_compliance_level(), e.calculate_total_score()) for e in self.entities_list]
 
     def get_dataframe(self):
-        # تحويل البيانات لـ DataFrame عشان Streamlit Bar Chart
+        # تحويل البيانات لـ DataFrame لعرض البار تشارت
         data = {
             "Entity": [e.entity_name for e in self.entities_list],
             "Score": [e.calculate_total_score() for e in self.entities_list],
@@ -49,7 +49,8 @@ class ComplianceManager:
 # Streamlit App
 # =====================
 
-st.title("PSC Risk Management Practitioner Dashboard - MENA")
+# العنوان بدون PSC
+st.title("Risk Management Practitioner Dashboard - MENA")
 
 manager = ComplianceManager()
 
@@ -91,8 +92,5 @@ st.subheader("Compliance Dashboard")
 
 df = manager.get_dataframe()
 
-# تحديد الألوان حسب Level
-color_map = {"Low": "red", "Medium": "orange", "High": "green"}
-bar_colors = df["Level"].map(color_map)
-
+# عرض البار تشارت بدون matplotlib
 st.bar_chart(df.set_index("Entity")["Score"])
