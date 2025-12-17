@@ -1,5 +1,5 @@
 import streamlit as st
-import matplotlib.pyplot as plt
+import pandas as pd
 
 # =====================
 # Classes
@@ -35,32 +35,15 @@ class ComplianceManager:
     def list_entities(self):
         return [(e.entity_name, e.sector, e.get_compliance_level(), e.calculate_total_score()) for e in self.entities_list]
 
-    def plot_dashboard(self):
-        names = [e.entity_name for e in self.entities_list]
-        scores = [e.calculate_total_score() for e in self.entities_list]
-        colors = []
-
-        for e in self.entities_list:
-            level = e.get_compliance_level()
-            if level == "Low":
-                colors.append("red")
-            elif level == "Medium":
-                colors.append("orange")
-            else:
-                colors.append("green")
-
-        fig, ax = plt.subplots(figsize=(10,6))
-        bars = ax.bar(names, scores, color=colors)
-        ax.set_xlabel("Entity Name")
-        ax.set_ylabel("Compliance Score")
-        ax.set_title("Digital Transformation Compliance Dashboard - MENA")
-        plt.xticks(rotation=45)
-
-        # Optional: show score on top of bars
-        for bar, score in zip(bars, scores):
-            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.05, f'{score:.1f}', ha='center')
-
-        return fig
+    def get_dataframe(self):
+        # تحويل البيانات لـ DataFrame عشان Streamlit Bar Chart
+        data = {
+            "Entity": [e.entity_name for e in self.entities_list],
+            "Score": [e.calculate_total_score() for e in self.entities_list],
+            "Level": [e.get_compliance_level() for e in self.entities_list]
+        }
+        df = pd.DataFrame(data)
+        return df
 
 # =====================
 # Streamlit App
@@ -103,7 +86,13 @@ entities_data = manager.list_entities()
 for data in entities_data:
     st.write(f"Name: {data[0]}, Sector: {data[1]}, Level: {data[2]}, Score: {data[3]:.1f}")
 
-# عرض البار تشارت باستخدام Matplotlib
+# عرض البار تشارت باستخدام Streamlit builtin
 st.subheader("Compliance Dashboard")
-fig = manager.plot_dashboard()
-st.pyplot(fig)
+
+df = manager.get_dataframe()
+
+# تحديد الألوان حسب Level
+color_map = {"Low": "red", "Medium": "orange", "High": "green"}
+bar_colors = df["Level"].map(color_map)
+
+st.bar_chart(df.set_index("Entity")["Score"])
